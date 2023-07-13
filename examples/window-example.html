@@ -8,11 +8,14 @@
 </head>
 <body>
 <div class="canvasContainer">
-  <canvas style="display: none" id="screen" width="1728" height="850"></canvas>
+  <canvas id="screen" width="1728" height="850"></canvas>
 </div>
 <div>
-  <bui-view id="allWindows" w="1728" h="850" border-color="#259" border-line-width="2">
-    <bui-windowgroup w="900" h="300" x="100" y="100" border-color="#259" border-line-width="2"></bui-windowgroup>
+  <bui-windowgroupmanager id="allWindows" w="1728" h="850" border-color="black" border-line-width="2">
+    <bui-windowgroup w="900" h="300" x="100" y="100" border-color="black" border-line-width="2">
+      <bui-window w="100" h="100" x="150" y="150" border-color="black" border-line-width="2"></bui-window>
+    </bui-windowgroup>
+  </bui-windowgroupmanager>
   </bui-view>
 </div>
 

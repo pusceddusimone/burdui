@@ -16,6 +16,7 @@ function View(){
     this.isView = true;
     this.parent = null;
     this.listeners = {};
+    this.id = null;
 }
 
 Object.assign(View.prototype, {
@@ -41,6 +42,15 @@ Object.assign(View.prototype, {
 
     getName : function(){
         return name;
+    },
+
+    setId : function(id){
+        this.id = id;
+        return this;
+    },
+
+    getId : function(){
+        return this.id;
     },
 
     setBackgroundColor: function(color){
@@ -93,6 +103,21 @@ Object.assign(View.prototype, {
             this.children.push(c);
             c.parent = this;
         }
+        return this;
+    },
+
+    removeChildren: function(){
+        this.children = [];
+        return this;
+    },
+
+    removeChildById: function(id){
+        let newChildren = [];
+        this.children.forEach((child) => {
+            if(child.getId() !== id)
+                newChildren.push(child);
+        });
+        this.children = newChildren;
         return this;
     },
 

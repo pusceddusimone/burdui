@@ -18,9 +18,7 @@ function WindowGroup(bounds){
     this.windowChildren = [];
     this.selectedWindow = 0;
     this.windowMap = [];
-    this.canvas = document.createElement("canvas");
-    this.windowApplication = null;
-    //document.getElementById("screen").append(canvas);
+    this.canvas = null;
 
 }
 
@@ -43,20 +41,6 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
 
     getBounds : function(){
         return this.bounds;
-    },
-
-    startWindowGroupApplication : function(){
-        let canvas = document.createElement("canvas");
-        canvas.width = this.bounds.w;
-        canvas.height = this.bounds.h;
-        canvas.style.left = this.bounds.x+"px";
-        canvas.style.top = this.bounds.y+"px";
-        canvas.style.position="absolute";
-        canvas.style.zIndex = "20";
-        canvas.style.borderStyle = "1px solid black";
-        canvas.style.borderWidth = this.bounds.lineWidth+"px";
-        canvas.style.borderColor = this.bounds.borderColor;
-        document.getElementsByClassName("canvasContainer")[0].insertBefore(canvas, document.getElementById('screen').children[0]);
     },
 
     /**
@@ -152,6 +136,14 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         this.paint(screen, root);
     },
 
+    setWindowCanvas : function(canvas){
+        this.canvas = canvas;
+        let screen = this.canvas.getContext('2d');
+        let root = document.getElementById('allWindows').buiView;
+        const app = new burdui.App(canvas, this);
+        app.start();
+    },
+
 
     /**
      * Function to clean the window, used when we switch to a new one
@@ -170,6 +162,8 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
      * Adds a new page when we click to the '+' button
      */
     addPage: function(){
+        if(!this.canvas)
+            return;
         let newIndex = this.findFirstAvailableIndexForWindow();
         let newWindow = new Window();
         newWindow.setBounds(new Bounds(0,0,this.bounds.w,this.bounds.h-50));
@@ -178,8 +172,8 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         this.windowChildren.push();
         this.addChild(newWindow);
         this.windowMap.push(newIndex);
-        let screen = document.getElementById('screen').getContext('2d');
-        let root = document.getElementById('window1').buiView;
+        let screen = this.canvas.getContext('2d');
+        let root = document.getElementById('allWindows').buiView;
         this.paint(screen, root);
         this.changeWindow(newIndex);
     },
@@ -189,14 +183,16 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
      * @param id id of the window to remove
      */
     removePage: function(id){
+        if(!this.canvas)
+            return;
         let newWindows = this.windowChildren.filter(window => window.getId() !== id);
         let newSelected = this.windowMap.indexOf(id);
         this.selectedWindow = this.windowMap[newSelected-1] ? this.windowMap[newSelected-1] : 0;
         let newMap = this.windowMap.filter(mapId => mapId !== id);
         this.windowChildren = newWindows;
         this.windowMap = newMap;
-        let screen = document.getElementById('screen').getContext('2d');
-        let root = document.getElementById('window1').buiView;
+        let screen = this.canvas.getContext('2d');
+        let root = document.getElementById('allWindows').buiView;
         this.removeChildren();
         this.paint(screen, root);
         this.changeWindow(this.selectedWindow);
@@ -257,6 +253,10 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
      * @param r the root
      */
     paint: function(g, r){
+        if(!this.canvas)
+            return;
+        g = this.canvas.getContext('2d');
+        r = this;
         this.getTabsOfWindows(); //Adds the tabs as children
         r = r || this.bounds;
         this.border.paint(g, r);
