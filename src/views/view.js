@@ -16,10 +16,6 @@ function View(){
     this.isView = true;
     this.parent = null;
     this.listeners = {};
-
-    this.addEventListener(EventTypes.mouseClick, function(source, e){
-        console.log(`mouse click (${e.x}, ${e.y}) on view ${source.name}`);
-    })
 }
 
 Object.assign(View.prototype, {

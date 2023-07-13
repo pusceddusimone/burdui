@@ -8,7 +8,7 @@ class ViewElement extends HTMLElement{
 
     }
 
-    connectedCallback(){
+    connectedCallback(callbackMutation = null){
         const self = this;
         var observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
@@ -17,6 +17,8 @@ class ViewElement extends HTMLElement{
                     const child = mutation.addedNodes[0];
                     if(child.buiView && child.buiView.isView){
                         self.buiView.addChild(child.buiView);
+                        if(typeof(callbackMutation) === "function")
+                            callbackMutation(child.buiView);
                     }
                 }
 
@@ -59,7 +61,7 @@ class ViewElement extends HTMLElement{
                     this.borderColor = attr.value;
                     break;
 
-                    // trick for managing grid panels
+                // trick for managing grid panels
                 case 'row':
                     this.buiView.row = Number(attr.value);
                     break;

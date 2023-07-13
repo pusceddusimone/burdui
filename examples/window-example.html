@@ -7,11 +7,13 @@
   <script src="js/window.js"></script>
 </head>
 <body>
-<div>
-  <canvas id="screen" width="1024" height="768"></canvas>
+<div class="canvasContainer">
+  <canvas style="display: none" id="screen" width="1728" height="850"></canvas>
 </div>
 <div>
-
+  <bui-view id="allWindows" w="1728" h="850" border-color="#259" border-line-width="2">
+    <bui-windowgroup w="900" h="300" x="100" y="100" border-color="#259" border-line-width="2"></bui-windowgroup>
+  </bui-view>
 </div>
 
 
