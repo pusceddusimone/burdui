@@ -8,7 +8,6 @@ class WindowGroupElement extends ViewElement {
     }
     connectedCallback() {
         //Whenever a child is added to the html, pass it to the window group
-        console.log("ciao");
         super.connectedCallback((child) => {
             this.buiView.formatChildrenToWindowChildren(child);
             //this.buiView.startWindowGroupApplication();

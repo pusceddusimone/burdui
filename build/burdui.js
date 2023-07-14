@@ -1859,8 +1859,8 @@
 	        this.background.setBounds(new Bounds(
 	            this.border.lineWidth/2,
 	            this.border.lineWidth/2,
-	            this.bounds.w - this.border.lineWidth,
-	            this.bounds.h - this.border.lineWidth));
+	            this.bounds.w,
+	            this.bounds.h));
 	        this.updateBounds();
 	        return this;
 	    },
@@ -1956,16 +1956,12 @@
 	        if(id == null)
 	            return;
 	        this.selectedWindow = id;
-	        let screen = document.getElementById('screen').getContext('2d');
-	        let root = document.getElementById('window1').buiView;
-	        this.resetWindow(document.getElementById('screen'));
-	        this.paint(screen, root);
+	        this.resetWindow(this.canvas);
+	        this.paint();
 	    },
 
 	    setWindowCanvas : function(canvas){
 	        this.canvas = canvas;
-	        let screen = this.canvas.getContext('2d');
-	        let root = document.getElementById('allWindows').buiView;
 	        const app = new burdui.App(canvas, this);
 	        app.start();
 	    },
@@ -1976,11 +1972,8 @@
 	     * @param screen screen to clean
 	     */
 	    resetWindow: function (screen){
-	        let rect = screen.getBoundingClientRect();
-	        let x = rect.left;
-	        let y = rect.top;
 	        let context = screen.getContext('2d');
-	        context.clearRect(x-3,y-3,context.canvas.width-this.border.lineWidth-10,context.canvas.height-this.border.lineWidth-10);
+	        context.clearRect(0,0,context.canvas.width-this.border.lineWidth,context.canvas.height-this.border.lineWidth);
 	    },
 
 
@@ -2017,10 +2010,7 @@
 	        let newMap = this.windowMap.filter(mapId => mapId !== id);
 	        this.windowChildren = newWindows;
 	        this.windowMap = newMap;
-	        let screen = this.canvas.getContext('2d');
-	        let root = document.getElementById('allWindows').buiView;
 	        this.removeChildren();
-	        this.paint(screen, root);
 	        this.changeWindow(this.selectedWindow);
 	    },
 
@@ -2035,7 +2025,7 @@
 	        let currentWidth = 0;
 	        for(let window of this.windowChildren){ //For each window children
 	            let button = new Button();
-	            let backgroundColor = "white";
+	            let backgroundColor = "transparent";
 	            if(window.getId() === this.selectedWindow) //If selected window change color to red
 	                backgroundColor = "red";
 	            //Generic tab button of a window
@@ -2043,7 +2033,7 @@
 	                .setBorderColor("#004d00")
 	                .setBorderLineWidth(3)
 	                .setFont("16px Arial")
-	                .setText("Finestra " + (window.getId()))
+	                .setText("Tab " + (window.getId()))
 	                .setTextColor("#004d00")
 	                .setId(window.getId())
 	                .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.changeWindow(source.getId());});
@@ -2078,14 +2068,15 @@
 	     * @param g the canvas
 	     * @param r the root
 	     */
-	    paint: function(g, r){
+	    paint: function(g=null, r=null){
 	        if(!this.canvas)
 	            return;
 	        g = this.canvas.getContext('2d');
-	        r = this;
-	        this.getTabsOfWindows(); //Adds the tabs as children
-	        r = r || this.bounds;
+	        r = this.bounds;
+	        this.bounds.x = 0;
+	        this.bounds.y = 0;
 	        this.border.paint(g, r);
+	        this.getTabsOfWindows(); //Adds the tabs as children
 	        this.paintChildren(g, r);
 	    },
 	});
@@ -2097,7 +2088,6 @@
 	    }
 	    connectedCallback() {
 	        //Whenever a child is added to the html, pass it to the window group
-	        console.log("ciao");
 	        super.connectedCallback((child) => {
 	            this.buiView.formatChildrenToWindowChildren(child);
 	            //this.buiView.startWindowGroupApplication();
@@ -2115,6 +2105,9 @@
 	    this.bounds = bounds || new Bounds();
 	    this.border = new Border();
 	    this.background = new Background();
+	    this.windowGroupChildren = [];
+	    this.wgMap = [];
+	    this.selectedWindows = [];
 	}
 
 
@@ -2134,6 +2127,18 @@
 	        return this;
 	    },
 
+	    /**
+	     * Finds the first available index for a newly created window
+	     * @returns {number} the index for the window
+	     */
+	    findFirstAvailableIndexForWindow: function(){
+	        let windowIndex = 0;
+	        while (typeof(this.wgMap[windowIndex]) !== "undefined") {
+	            windowIndex++;
+	        }
+	        return windowIndex;
+	    },
+
 	    getBounds : function(){
 	        return this.bounds;
 	    },
@@ -2146,6 +2151,22 @@
 	        this.updateBounds();
 
 	        return this;
+	    },
+
+
+	    formatWindowGroup : function(child){
+	        if(child.constructor.name === "WindowGroup"){
+	            let firstAvailableIndex = this.findFirstAvailableIndexForWindow();
+	            child.setId(firstAvailableIndex);
+	            this.wgMap.push(firstAvailableIndex);
+	            this.selectedWindows.push(firstAvailableIndex);
+	            this.windowGroupChildren.push(child);
+	        }
+	    },
+
+	    changeWindowVisibility : function (id){
+	        if(id in this.selectedWindows) //Removal case
+	        ;
 	    },
 
 	    updateBounds: function(){
@@ -2166,6 +2187,43 @@
 	        }
 	    },
 
+	    resetWindow: function (screen){
+	        let context = screen.getContext('2d');
+	        context.clearRect(0,0,context.canvas.width-this.border.lineWidth,context.canvas.height-this.border.lineWidth);
+	    },
+
+	    addTrayChildren : function(tabsWidth = 120, tabsHeight = 40, xButtonWidth = 20){
+	        let wgmBounds = this.getBounds();
+	        let currentWidth = 0;
+	        for(let wg of this.windowGroupChildren){
+	            let button = new Button();
+	            let backgroundColor = "transparent";
+	            if(wg.getId() in this.selectedWindows)
+	                backgroundColor = "red";
+	            button.setBounds(new Bounds(wgmBounds.x+currentWidth,wgmBounds.y+this.bounds.h-tabsHeight, tabsWidth, tabsHeight)).setBackgroundColor(backgroundColor)
+	                .setBorderColor("#004d00")
+	                .setBorderLineWidth(3)
+	                .setFont("16px Arial")
+	                .setText("Finestra " + (wg.getId()))
+	                .setTextColor("#004d00")
+	                .setId(wg.getId())
+	                .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.changeWindow(source.getId());});
+	            currentWidth += tabsWidth;
+	            this.addChild(button);
+	        }
+	    },
+	    
+	    addVisibileWindowGroups : function(){
+	        for(let wg of this.windowGroupChildren)
+	        {
+	            if(wg.getId() in this.selectedWindows)
+	            {
+	                this.addChild(wg);
+	            }
+	        }
+	    },
+
+
 
 	    /**
 	     * Paints the window, the window just acts as a container for the windowgroup
@@ -2174,6 +2232,9 @@
 	     */
 	    paint: function(g, r){
 	        r = r || this.bounds;
+	        this.resetWindow(document.getElementById('screen'));
+	        this.addTrayChildren();
+	        this.addVisibileWindowGroups();
 	        this.border.paint(g, r);
 	        this.paintChildren(g, r);
 	    },
@@ -2187,6 +2248,7 @@
 	    connectedCallback() {
 	        super.connectedCallback((child) => {
 	            this.onWindowGroupAdd(child);
+	            this.buiView.formatWindowGroup(child);
 	        });
 	    }
 
@@ -2195,8 +2257,8 @@
 	        if(child.constructor.name !== "WindowGroup")
 	            return;
 	        let canvas = document.createElement("canvas");
-	        canvas.width = child.bounds.w+200;
-	        canvas.height = child.bounds.h+200;
+	        canvas.width = child.bounds.w;
+	        canvas.height = child.bounds.h;
 	        canvas.style.left = child.bounds.x+"px";
 	        canvas.style.top = child.bounds.y+"px";
 	        canvas.style.position="absolute";

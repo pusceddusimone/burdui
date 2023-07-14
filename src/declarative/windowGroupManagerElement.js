@@ -9,6 +9,7 @@ class WindowGroupManagerElement extends ViewElement {
     connectedCallback() {
         super.connectedCallback((child) => {
             this.onWindowGroupAdd(child);
+            this.buiView.formatWindowGroup(child);
         });
     }
 
@@ -17,8 +18,8 @@ class WindowGroupManagerElement extends ViewElement {
         if(child.constructor.name !== "WindowGroup")
             return;
         let canvas = document.createElement("canvas");
-        canvas.width = child.bounds.w+10;
-        canvas.height = child.bounds.h+10;
+        canvas.width = child.bounds.w;
+        canvas.height = child.bounds.h;
         canvas.style.left = child.bounds.x+"px";
         canvas.style.top = child.bounds.y+"px";
         canvas.style.position="absolute";

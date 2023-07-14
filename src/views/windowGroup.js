@@ -33,8 +33,8 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         this.background.setBounds(new Bounds(
             this.border.lineWidth/2,
             this.border.lineWidth/2,
-            this.bounds.w - this.border.lineWidth,
-            this.bounds.h - this.border.lineWidth));
+            this.bounds.w,
+            this.bounds.h));
         this.updateBounds();
         return this;
     },
@@ -130,16 +130,12 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         if(id == null)
             return;
         this.selectedWindow = id;
-        let screen = document.getElementById('screen').getContext('2d');
-        let root = document.getElementById('window1').buiView;
-        this.resetWindow(document.getElementById('screen'));
-        this.paint(screen, root);
+        this.resetWindow(this.canvas);
+        this.paint();
     },
 
     setWindowCanvas : function(canvas){
         this.canvas = canvas;
-        let screen = this.canvas.getContext('2d');
-        let root = document.getElementById('allWindows').buiView;
         const app = new burdui.App(canvas, this);
         app.start();
     },
@@ -150,11 +146,8 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
      * @param screen screen to clean
      */
     resetWindow: function (screen){
-        let rect = screen.getBoundingClientRect();
-        let x = rect.left;
-        let y = rect.top;
         let context = screen.getContext('2d');
-        context.clearRect(x-3,y-3,context.canvas.width-this.border.lineWidth-10,context.canvas.height-this.border.lineWidth-10);
+        context.clearRect(0,0,context.canvas.width-this.border.lineWidth,context.canvas.height-this.border.lineWidth);
     },
 
 
@@ -191,10 +184,7 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         let newMap = this.windowMap.filter(mapId => mapId !== id);
         this.windowChildren = newWindows;
         this.windowMap = newMap;
-        let screen = this.canvas.getContext('2d');
-        let root = document.getElementById('allWindows').buiView;
         this.removeChildren();
-        this.paint(screen, root);
         this.changeWindow(this.selectedWindow);
     },
 
@@ -209,7 +199,7 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         let currentWidth = 0;
         for(let window of this.windowChildren){ //For each window children
             let button = new Button();
-            let backgroundColor = "white";
+            let backgroundColor = "transparent";
             if(window.getId() === this.selectedWindow) //If selected window change color to red
                 backgroundColor = "red";
             //Generic tab button of a window
@@ -217,7 +207,7 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
                 .setBorderColor("#004d00")
                 .setBorderLineWidth(3)
                 .setFont("16px Arial")
-                .setText("Finestra " + (window.getId()))
+                .setText("Tab " + (window.getId()))
                 .setTextColor("#004d00")
                 .setId(window.getId())
                 .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.changeWindow(source.getId())});
@@ -252,14 +242,15 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
      * @param g the canvas
      * @param r the root
      */
-    paint: function(g, r){
+    paint: function(g=null, r=null){
         if(!this.canvas)
             return;
         g = this.canvas.getContext('2d');
-        r = this;
-        this.getTabsOfWindows(); //Adds the tabs as children
-        r = r || this.bounds;
+        r = this.bounds;
+        this.bounds.x = 0;
+        this.bounds.y = 0;
         this.border.paint(g, r);
+        this.getTabsOfWindows(); //Adds the tabs as children
         this.paintChildren(g, r);
     },
 });
