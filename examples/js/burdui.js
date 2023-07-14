@@ -1845,6 +1845,7 @@
 	    this.selectedWindow = 0;
 	    this.windowMap = [];
 	    this.canvas = null;
+	    this.callBackRemoved = null;
 
 	}
 
@@ -1867,6 +1868,10 @@
 
 	    getBounds : function(){
 	        return this.bounds;
+	    },
+
+	    setCallbackRemoved : function (callback){
+	      this.callBackRemoved = callback;
 	    },
 
 	    /**
@@ -2012,6 +2017,15 @@
 	        this.windowMap = newMap;
 	        this.removeChildren();
 	        this.changeWindow(this.selectedWindow);
+	        //this.canvas.remove();
+	        //document.getElementsByClassName("canvasContainer")[0].insertBefore(this.canvas, document.getElementById('screen').children[0]);
+	    },
+
+
+	    closeWindowGroup : function (){
+	        if(this.callBackRemoved)
+	            this.callBackRemoved(this);
+	        this.canvas.remove();
 	    },
 
 	    /**
@@ -2019,8 +2033,9 @@
 	     * @param tabsWidth width of the tab
 	     * @param tabsHeight height of the tab
 	     * @param xButtonWidth width of the x button
+	     * @param closeWindowButtonWidth width of the x to close the window group
 	     */
-	    getTabsOfWindows: function(tabsWidth = 120, tabsHeight = 40, xButtonWidth = 20){
+	    getTabsOfWindows: function(tabsWidth = 120, tabsHeight = 40, xButtonWidth = 20, closeWindowButtonWidth = 40){
 	        let windowGroupBounds = this.getBounds();
 	        let currentWidth = 0;
 	        for(let window of this.windowChildren){ //For each window children
@@ -2046,9 +2061,20 @@
 	                .setTextColor("#004d00")
 	                .setId(window.getId())
 	                .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.removePage(source.getId());});
+	            let closeWindowGroupButton = new Button();
+	            closeWindowGroupButton.setBounds(new Bounds(windowGroupBounds.x+this.bounds.w-closeWindowButtonWidth,windowGroupBounds.y+1, closeWindowButtonWidth, tabsHeight)).setBackgroundColor("white")
+	                .setBorderColor("#004d00")
+	                .setBorderLineWidth(3)
+	                .setFont("16px Arial")
+	                .setTextColor("red")
+	                .setText("X")
+	                .setTextColor("#004d00")
+	                .setId(window.getId())
+	                .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.closeWindowGroup();});
 	            currentWidth += tabsWidth;
 	            this.addChild(button);
 	            this.addChild(closeWindowButton);
+	            this.addChild(closeWindowGroupButton);
 	        }
 	        //Button to add a new page
 	        let buttonNewPage = new Button();
@@ -2164,6 +2190,13 @@
 	        }
 	    },
 
+
+	    callBackRemovedWindowGroup : function(id){
+	        this.windowGroupChildren =  this.windowGroupChildren.filter(child => child!==id);
+	        let screen = document.getElementById('screen').getContext('2d');
+	        this.paint(screen, this.bounds);
+	    },
+
 	    changeWindowVisibility : function (id){
 	        if(id in this.selectedWindows) //Removal case
 	        ;
@@ -2212,12 +2245,13 @@
 	            this.addChild(button);
 	        }
 	    },
-	    
+
 	    addVisibileWindowGroups : function(){
 	        for(let wg of this.windowGroupChildren)
 	        {
 	            if(wg.getId() in this.selectedWindows)
 	            {
+	                //Setta canvas del windowgroup visibile
 	                this.addChild(wg);
 	            }
 	        }
@@ -2243,6 +2277,7 @@
 	class WindowGroupManagerElement extends ViewElement {
 	    constructor() {
 	        super();
+	        this.currentId = 0;
 	        this.buiView = new WindowGroupManager();
 	    }
 	    connectedCallback() {
@@ -2256,6 +2291,8 @@
 	    onWindowGroupAdd(child) {
 	        if(child.constructor.name !== "WindowGroup")
 	            return;
+	        child.setId(this.currentId++);
+	        child.setCallbackRemoved((child) => {this.callBackRemovedWindowGroup(child);});
 	        let canvas = document.createElement("canvas");
 	        canvas.width = child.bounds.w;
 	        canvas.height = child.bounds.h;
@@ -2268,6 +2305,10 @@
 	        canvas.style.borderColor = child.bounds.borderColor;
 	        document.getElementsByClassName("canvasContainer")[0].insertBefore(canvas, document.getElementById('screen').children[0]);
 	        child.setWindowCanvas(canvas);
+	    }
+
+	    callBackRemovedWindowGroup(child){
+	        this.buiView.callBackRemovedWindowGroup(child.getId());
 	    }
 
 

@@ -68,6 +68,13 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         }
     },
 
+
+    callBackRemovedWindowGroup : function(id){
+        this.windowGroupChildren =  this.windowGroupChildren.filter(child => child!==id);
+        let screen = document.getElementById('screen').getContext('2d');
+        this.paint(screen, this.bounds);
+    },
+
     changeWindowVisibility : function (id){
         if(id in this.selectedWindows) //Removal case
         {
