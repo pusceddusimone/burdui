@@ -12,6 +12,7 @@ function WindowGroupManager(bounds){
     this.windowGroupChildren = [];
     this.wgMap = [];
     this.selectedWindows = [];
+    this.canvasList = [];
 }
 
 
@@ -29,6 +30,13 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
             this.bounds.h - this.border.lineWidth));
         this.updateBounds();
         return this;
+    },
+
+    addWindowGroupCanvas : function (canvas, id){
+      this.canvasList.push({
+          id,
+          canvas
+      });
     },
 
     /**
@@ -70,16 +78,42 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
 
 
     callBackRemovedWindowGroup : function(id){
-        this.windowGroupChildren =  this.windowGroupChildren.filter(child => child!==id);
+        let canvasObj = this.getWindowGroupCanvas(id);
+        if(!canvasObj)
+            return;
+        let canvas = canvasObj.canvas;
+        this.windowGroupChildren =  this.windowGroupChildren.filter(child => child.getId()!==id);
+        this.canvasList = this.canvasList.filter(obj => obj.id !== id);
+        this.selectedWindows = this.selectedWindows.filter(wgId => wgId !== id);
         let screen = document.getElementById('screen').getContext('2d');
         this.paint(screen, this.bounds);
+        canvas.remove();
     },
 
-    changeWindowVisibility : function (id){
-        if(id in this.selectedWindows) //Removal case
-        {
+    getWindowGroupCanvas : function (id){
+        return this.canvasList.find(c => c.id === id);
+    },
 
-        }
+    callBackReduceWindowGroup : function(id){
+        let canvasObj = this.getWindowGroupCanvas(id);
+        if(!canvasObj)
+            return;
+        let canvas = canvasObj.canvas;
+        this.selectedWindows = this.selectedWindows.filter(windowId => windowId !== id);
+        let screen = document.getElementById('screen').getContext('2d');
+        this.paint(screen, this.bounds);
+        canvas.remove();
+    },
+
+    callBackShowWindowGroup : function(id){
+        let canvasObj = this.getWindowGroupCanvas(id);
+        if(!canvasObj)
+            return;
+        let canvas = canvasObj.canvas;
+        this.selectedWindows.push(id);
+        let screen = document.getElementById('screen').getContext('2d');
+        this.paint(screen, this.bounds);
+        document.getElementsByClassName("canvasContainer")[0].insertBefore(canvas, document.getElementById('screen').children[0])
     },
 
     updateBounds: function(){
@@ -103,6 +137,18 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
     resetWindow: function (screen){
         let context = screen.getContext('2d');
         context.clearRect(0,0,context.canvas.width-this.border.lineWidth,context.canvas.height-this.border.lineWidth);
+        this.removeChildren();
+    },
+
+    changeWindowGroup : function (id){
+        if(this.selectedWindows.includes(id)) //WindowGroup is already selected
+        {
+            this.callBackReduceWindowGroup(id);
+        }
+        else //WindowGroup not selected
+        {
+            this.callBackShowWindowGroup(id);
+        }
     },
 
     addTrayChildren : function(tabsWidth = 120, tabsHeight = 40, xButtonWidth = 20){
@@ -111,7 +157,7 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         for(let wg of this.windowGroupChildren){
             let button = new Button();
             let backgroundColor = "transparent";
-            if(wg.getId() in this.selectedWindows)
+            if(this.selectedWindows.includes(wg.getId()))
                 backgroundColor = "red";
             button.setBounds(new Bounds(wgmBounds.x+currentWidth,wgmBounds.y+this.bounds.h-tabsHeight, tabsWidth, tabsHeight)).setBackgroundColor(backgroundColor)
                 .setBorderColor("#004d00")
@@ -120,7 +166,7 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
                 .setText("Finestra " + (wg.getId()))
                 .setTextColor("#004d00")
                 .setId(wg.getId())
-                .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.changeWindow(source.getId())});
+                .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.changeWindowGroup(source.getId())});
             currentWidth += tabsWidth;
             this.addChild(button);
         }

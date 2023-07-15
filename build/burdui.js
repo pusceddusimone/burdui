@@ -1846,6 +1846,7 @@
 	    this.windowMap = [];
 	    this.canvas = null;
 	    this.callBackRemoved = null;
+	    this.callBackReduced = null;
 
 	}
 
@@ -1872,6 +1873,10 @@
 
 	    setCallbackRemoved : function (callback){
 	      this.callBackRemoved = callback;
+	    },
+
+	    setCallbackReduced : function (callback){
+	        this.callBackReduced = callback;
 	    },
 
 	    /**
@@ -1953,6 +1958,13 @@
 	        }
 	    },
 
+	    resetChildren : function (){
+	        let windows = this.children.filter(c => c.constructor.name === "Window");
+	        this.removeChildren();
+	        for(let window of windows)
+	            this.addChild(window);
+	    },
+
 	    /**
 	     * Function to switch to a new window
 	     * @param id the id of the window
@@ -2017,15 +2029,19 @@
 	        this.windowMap = newMap;
 	        this.removeChildren();
 	        this.changeWindow(this.selectedWindow);
-	        //this.canvas.remove();
-	        //document.getElementsByClassName("canvasContainer")[0].insertBefore(this.canvas, document.getElementById('screen').children[0]);
 	    },
 
 
 	    closeWindowGroup : function (){
 	        if(this.callBackRemoved)
 	            this.callBackRemoved(this);
-	        this.canvas.remove();
+	        //this.canvas.remove();
+	    },
+
+	    reduceWindowGroup : function (){
+	        if(this.callBackReduced)
+	            this.callBackReduced(this);
+	      //this.canvas.remove();
 	    },
 
 	    /**
@@ -2061,21 +2077,29 @@
 	                .setTextColor("#004d00")
 	                .setId(window.getId())
 	                .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.removePage(source.getId());});
-	            let closeWindowGroupButton = new Button();
-	            closeWindowGroupButton.setBounds(new Bounds(windowGroupBounds.x+this.bounds.w-closeWindowButtonWidth,windowGroupBounds.y+1, closeWindowButtonWidth, tabsHeight)).setBackgroundColor("white")
-	                .setBorderColor("#004d00")
-	                .setBorderLineWidth(3)
-	                .setFont("16px Arial")
-	                .setTextColor("red")
-	                .setText("X")
-	                .setTextColor("#004d00")
-	                .setId(window.getId())
-	                .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.closeWindowGroup();});
-	            currentWidth += tabsWidth;
 	            this.addChild(button);
 	            this.addChild(closeWindowButton);
-	            this.addChild(closeWindowGroupButton);
+	            currentWidth += tabsWidth;
 	        }
+	        let closeWindowGroupButton = new Button();
+	        closeWindowGroupButton.setBounds(new Bounds(windowGroupBounds.x+this.bounds.w-closeWindowButtonWidth,windowGroupBounds.y+1, closeWindowButtonWidth, tabsHeight)).setBackgroundColor("white")
+	            .setBorderColor("#004d00")
+	            .setBorderLineWidth(3)
+	            .setFont("16px Arial")
+	            .setText("X")
+	            .setTextColor("#004d00")
+	            .setId(this.getId())
+	            .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.closeWindowGroup();});
+
+	        let reduceButton = new Button();
+	        reduceButton.setBounds(new Bounds(windowGroupBounds.x+this.bounds.w-closeWindowButtonWidth*2,windowGroupBounds.y+1, closeWindowButtonWidth, tabsHeight)).setBackgroundColor("white")
+	            .setBorderColor("#004d00")
+	            .setBorderLineWidth(3)
+	            .setFont("16px Arial")
+	            .setText("_")
+	            .setTextColor("#004d00")
+	            .setId(this.getId())
+	            .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.reduceWindowGroup();});
 	        //Button to add a new page
 	        let buttonNewPage = new Button();
 	        buttonNewPage.setBounds(new Bounds(windowGroupBounds.x+currentWidth-1,windowGroupBounds.y+1, 30, 40)).setBackgroundColor("white")
@@ -2086,6 +2110,8 @@
 	            .setTextColor("#004d00")
 	            .addEventListener(burdui.EventTypes.mouseClick, () => { this.addPage();});
 	        this.addChild(buttonNewPage);
+	        this.addChild(closeWindowGroupButton);
+	        this.addChild(reduceButton);
 	    },
 
 
@@ -2097,6 +2123,7 @@
 	    paint: function(g=null, r=null){
 	        if(!this.canvas)
 	            return;
+	        this.resetChildren();
 	        g = this.canvas.getContext('2d');
 	        r = this.bounds;
 	        this.bounds.x = 0;
@@ -2134,6 +2161,7 @@
 	    this.windowGroupChildren = [];
 	    this.wgMap = [];
 	    this.selectedWindows = [];
+	    this.canvasList = [];
 	}
 
 
@@ -2151,6 +2179,13 @@
 	            this.bounds.h - this.border.lineWidth));
 	        this.updateBounds();
 	        return this;
+	    },
+
+	    addWindowGroupCanvas : function (canvas, id){
+	      this.canvasList.push({
+	          id,
+	          canvas
+	      });
 	    },
 
 	    /**
@@ -2192,14 +2227,42 @@
 
 
 	    callBackRemovedWindowGroup : function(id){
-	        this.windowGroupChildren =  this.windowGroupChildren.filter(child => child!==id);
+	        let canvasObj = this.getWindowGroupCanvas(id);
+	        if(!canvasObj)
+	            return;
+	        let canvas = canvasObj.canvas;
+	        this.windowGroupChildren =  this.windowGroupChildren.filter(child => child.getId()!==id);
+	        this.canvasList = this.canvasList.filter(obj => obj.id !== id);
+	        this.selectedWindows = this.selectedWindows.filter(wgId => wgId !== id);
 	        let screen = document.getElementById('screen').getContext('2d');
 	        this.paint(screen, this.bounds);
+	        canvas.remove();
 	    },
 
-	    changeWindowVisibility : function (id){
-	        if(id in this.selectedWindows) //Removal case
-	        ;
+	    getWindowGroupCanvas : function (id){
+	        return this.canvasList.find(c => c.id === id);
+	    },
+
+	    callBackReduceWindowGroup : function(id){
+	        let canvasObj = this.getWindowGroupCanvas(id);
+	        if(!canvasObj)
+	            return;
+	        let canvas = canvasObj.canvas;
+	        this.selectedWindows = this.selectedWindows.filter(windowId => windowId !== id);
+	        let screen = document.getElementById('screen').getContext('2d');
+	        this.paint(screen, this.bounds);
+	        canvas.remove();
+	    },
+
+	    callBackShowWindowGroup : function(id){
+	        let canvasObj = this.getWindowGroupCanvas(id);
+	        if(!canvasObj)
+	            return;
+	        let canvas = canvasObj.canvas;
+	        this.selectedWindows.push(id);
+	        let screen = document.getElementById('screen').getContext('2d');
+	        this.paint(screen, this.bounds);
+	        document.getElementsByClassName("canvasContainer")[0].insertBefore(canvas, document.getElementById('screen').children[0]);
 	    },
 
 	    updateBounds: function(){
@@ -2223,6 +2286,18 @@
 	    resetWindow: function (screen){
 	        let context = screen.getContext('2d');
 	        context.clearRect(0,0,context.canvas.width-this.border.lineWidth,context.canvas.height-this.border.lineWidth);
+	        this.removeChildren();
+	    },
+
+	    changeWindowGroup : function (id){
+	        if(this.selectedWindows.includes(id)) //WindowGroup is already selected
+	        {
+	            this.callBackReduceWindowGroup(id);
+	        }
+	        else //WindowGroup not selected
+	        {
+	            this.callBackShowWindowGroup(id);
+	        }
 	    },
 
 	    addTrayChildren : function(tabsWidth = 120, tabsHeight = 40, xButtonWidth = 20){
@@ -2231,7 +2306,7 @@
 	        for(let wg of this.windowGroupChildren){
 	            let button = new Button();
 	            let backgroundColor = "transparent";
-	            if(wg.getId() in this.selectedWindows)
+	            if(this.selectedWindows.includes(wg.getId()))
 	                backgroundColor = "red";
 	            button.setBounds(new Bounds(wgmBounds.x+currentWidth,wgmBounds.y+this.bounds.h-tabsHeight, tabsWidth, tabsHeight)).setBackgroundColor(backgroundColor)
 	                .setBorderColor("#004d00")
@@ -2240,7 +2315,7 @@
 	                .setText("Finestra " + (wg.getId()))
 	                .setTextColor("#004d00")
 	                .setId(wg.getId())
-	                .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.changeWindow(source.getId());});
+	                .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.changeWindowGroup(source.getId());});
 	            currentWidth += tabsWidth;
 	            this.addChild(button);
 	        }
@@ -2291,8 +2366,10 @@
 	    onWindowGroupAdd(child) {
 	        if(child.constructor.name !== "WindowGroup")
 	            return;
-	        child.setId(this.currentId++);
+	        let childId = this.currentId++;
+	        child.setId(childId);
 	        child.setCallbackRemoved((child) => {this.callBackRemovedWindowGroup(child);});
+	        child.setCallbackReduced((child) => {this.callBackReduceWindowGroup(child);});
 	        let canvas = document.createElement("canvas");
 	        canvas.width = child.bounds.w;
 	        canvas.height = child.bounds.h;
@@ -2303,12 +2380,17 @@
 	        canvas.style.borderStyle = "1px solid black";
 	        canvas.style.borderWidth = child.bounds.lineWidth+"px";
 	        canvas.style.borderColor = child.bounds.borderColor;
+	        this.buiView.addWindowGroupCanvas(canvas, childId);
 	        document.getElementsByClassName("canvasContainer")[0].insertBefore(canvas, document.getElementById('screen').children[0]);
 	        child.setWindowCanvas(canvas);
 	    }
 
 	    callBackRemovedWindowGroup(child){
 	        this.buiView.callBackRemovedWindowGroup(child.getId());
+	    }
+
+	    callBackReduceWindowGroup(child){
+	        this.buiView.callBackReduceWindowGroup(child.getId());
 	    }
 
 

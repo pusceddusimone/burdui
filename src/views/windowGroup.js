@@ -20,6 +20,7 @@ function WindowGroup(bounds){
     this.windowMap = [];
     this.canvas = null;
     this.callBackRemoved = null;
+    this.callBackReduced = null;
 
 }
 
@@ -46,6 +47,10 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
 
     setCallbackRemoved : function (callback){
       this.callBackRemoved = callback;
+    },
+
+    setCallbackReduced : function (callback){
+        this.callBackReduced = callback;
     },
 
     /**
@@ -127,6 +132,13 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         }
     },
 
+    resetChildren : function (){
+        let windows = this.children.filter(c => c.constructor.name === "Window");
+        this.removeChildren();
+        for(let window of windows)
+            this.addChild(window);
+    },
+
     /**
      * Function to switch to a new window
      * @param id the id of the window
@@ -191,15 +203,19 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         this.windowMap = newMap;
         this.removeChildren();
         this.changeWindow(this.selectedWindow);
-        //this.canvas.remove();
-        //document.getElementsByClassName("canvasContainer")[0].insertBefore(this.canvas, document.getElementById('screen').children[0]);
     },
 
 
     closeWindowGroup : function (){
         if(this.callBackRemoved)
             this.callBackRemoved(this);
-        this.canvas.remove();
+        //this.canvas.remove();
+    },
+
+    reduceWindowGroup : function (){
+        if(this.callBackReduced)
+            this.callBackReduced(this);
+      //this.canvas.remove();
     },
 
     /**
@@ -235,21 +251,29 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
                 .setTextColor("#004d00")
                 .setId(window.getId())
                 .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.removePage(source.getId())});
-            let closeWindowGroupButton = new Button();
-            closeWindowGroupButton.setBounds(new Bounds(windowGroupBounds.x+this.bounds.w-closeWindowButtonWidth,windowGroupBounds.y+1, closeWindowButtonWidth, tabsHeight)).setBackgroundColor("white")
-                .setBorderColor("#004d00")
-                .setBorderLineWidth(3)
-                .setFont("16px Arial")
-                .setTextColor("red")
-                .setText("X")
-                .setTextColor("#004d00")
-                .setId(window.getId())
-                .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.closeWindowGroup();});
-            currentWidth += tabsWidth;
             this.addChild(button);
             this.addChild(closeWindowButton);
-            this.addChild(closeWindowGroupButton)
+            currentWidth += tabsWidth;
         }
+        let closeWindowGroupButton = new Button();
+        closeWindowGroupButton.setBounds(new Bounds(windowGroupBounds.x+this.bounds.w-closeWindowButtonWidth,windowGroupBounds.y+1, closeWindowButtonWidth, tabsHeight)).setBackgroundColor("white")
+            .setBorderColor("#004d00")
+            .setBorderLineWidth(3)
+            .setFont("16px Arial")
+            .setText("X")
+            .setTextColor("#004d00")
+            .setId(this.getId())
+            .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.closeWindowGroup();});
+
+        let reduceButton = new Button();
+        reduceButton.setBounds(new Bounds(windowGroupBounds.x+this.bounds.w-closeWindowButtonWidth*2,windowGroupBounds.y+1, closeWindowButtonWidth, tabsHeight)).setBackgroundColor("white")
+            .setBorderColor("#004d00")
+            .setBorderLineWidth(3)
+            .setFont("16px Arial")
+            .setText("_")
+            .setTextColor("#004d00")
+            .setId(this.getId())
+            .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.reduceWindowGroup();});
         //Button to add a new page
         let buttonNewPage = new Button();
         buttonNewPage.setBounds(new Bounds(windowGroupBounds.x+currentWidth-1,windowGroupBounds.y+1, 30, 40)).setBackgroundColor("white")
@@ -260,6 +284,8 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
             .setTextColor("#004d00")
             .addEventListener(burdui.EventTypes.mouseClick, () => { this.addPage()});
         this.addChild(buttonNewPage);
+        this.addChild(closeWindowGroupButton)
+        this.addChild(reduceButton);
     },
 
 
@@ -271,6 +297,7 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
     paint: function(g=null, r=null){
         if(!this.canvas)
             return;
+        this.resetChildren();
         g = this.canvas.getContext('2d');
         r = this.bounds;
         this.bounds.x = 0;
