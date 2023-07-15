@@ -32,6 +32,11 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         return this;
     },
 
+    /**
+     * Sets the WindowGroup child canvas
+     * @param canvas canvas of the WindowGroup child
+     * @param id id of the newly created window
+     */
     addWindowGroupCanvas : function (canvas, id){
       this.canvasList.push({
           id,
@@ -65,9 +70,13 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         return this;
     },
 
-
+    /**
+     * Adds a newly created windowGroup to the manager
+     * @param child the windwgroup
+     */
     formatWindowGroup : function(child){
-        if(child.constructor.name === "WindowGroup"){
+        if(child.constructor.name === "WindowGroup") //If windowGroup add
+        {
             let firstAvailableIndex = this.findFirstAvailableIndexForWindow();
             child.setId(firstAvailableIndex);
             this.wgMap.push(firstAvailableIndex);
@@ -76,7 +85,10 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         }
     },
 
-
+    /**
+     * Callback when a windowgroup is closed
+     * @param id id of the windowgroup
+     */
     callBackRemovedWindowGroup : function(id){
         let canvasObj = this.getWindowGroupCanvas(id);
         if(!canvasObj)
@@ -90,10 +102,19 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         canvas.remove();
     },
 
+    /**
+     * Gets the canvas of the windowgroup given its id
+     * @param id id of the windowgroup
+     * @returns {*} the canvas
+     */
     getWindowGroupCanvas : function (id){
         return this.canvasList.find(c => c.id === id);
     },
 
+    /**
+     * Callback when windowgroup is reduced to icon
+     * @param id id of the windowgroup
+     */
     callBackReduceWindowGroup : function(id){
         let canvasObj = this.getWindowGroupCanvas(id);
         if(!canvasObj)
@@ -105,6 +126,10 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         canvas.remove();
     },
 
+    /**
+     * Callback when windowgroup is clicked from the application tray and is not visible
+     * @param id id of the clicked windowgroup
+     */
     callBackShowWindowGroup : function(id){
         let canvasObj = this.getWindowGroupCanvas(id);
         if(!canvasObj)
@@ -134,12 +159,20 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         }
     },
 
+    /**
+     * Resets the windowgroupmanager window
+     * @param screen
+     */
     resetWindow: function (screen){
         let context = screen.getContext('2d');
         context.clearRect(0,0,context.canvas.width-this.border.lineWidth,context.canvas.height-this.border.lineWidth);
         this.removeChildren();
     },
 
+    /**
+     * Changes the visibility of a windowgroup
+     * @param id id of the windowgroup
+     */
     changeWindowGroup : function (id){
         if(this.selectedWindows.includes(id)) //WindowGroup is already selected
         {
@@ -151,7 +184,12 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         }
     },
 
-    addTrayChildren : function(tabsWidth = 120, tabsHeight = 40, xButtonWidth = 20){
+    /**
+     * Prepares the application tray depending on the windowgroups added
+     * @param tabsWidth width of the tabs
+     * @param tabsHeight height of the tabs
+     */
+    addTrayChildren : function(tabsWidth = 120, tabsHeight = 40){
         let wgmBounds = this.getBounds();
         let currentWidth = 0;
         for(let wg of this.windowGroupChildren){
@@ -172,17 +210,15 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         }
     },
 
+    /**
+     * Sets the visible windowgroups as children
+     */
     addVisibileWindowGroups : function(){
         for(let wg of this.windowGroupChildren)
         {
-            if(wg.getId() in this.selectedWindows)
+            if(this.selectedWindows.includes(wg.getId()))
             {
-                //Setta canvas del windowgroup visibile
                 this.addChild(wg);
-            }
-            else
-            {
-                //Setta canvas del windowgroup invisibile
             }
         }
     },
@@ -190,7 +226,7 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
 
 
     /**
-     * Paints the window, the window just acts as a container for the windowgroup
+     * Paints the windowgroupmanager
      * @param g the canvas
      * @param r the root
      */

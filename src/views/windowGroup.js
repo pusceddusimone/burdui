@@ -45,10 +45,18 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         return this.bounds;
     },
 
+    /**
+     * Sets the callback called when we click the close button
+     * @param callback function to call
+     */
     setCallbackRemoved : function (callback){
       this.callBackRemoved = callback;
     },
 
+    /**
+     * Sets the callback called when we click the reduce to icon button
+     * @param callback function to call
+     */
     setCallbackReduced : function (callback){
         this.callBackReduced = callback;
     },
@@ -132,6 +140,9 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         }
     },
 
+    /**
+     * Override to reset the children which are not windows
+     */
     resetChildren : function (){
         let windows = this.children.filter(c => c.constructor.name === "Window");
         this.removeChildren();
@@ -151,6 +162,10 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         this.paint();
     },
 
+    /**
+     * Sets the canvas for this windowgroup
+     * @param canvas
+     */
     setWindowCanvas : function(canvas){
         this.canvas = canvas;
         const app = new burdui.App(canvas, this);
@@ -206,16 +221,20 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
     },
 
 
+    /**
+     * Closes this windowgroup
+     */
     closeWindowGroup : function (){
         if(this.callBackRemoved)
             this.callBackRemoved(this);
-        //this.canvas.remove();
     },
 
+    /**
+     * Reduces to icon this windowgroup
+     */
     reduceWindowGroup : function (){
         if(this.callBackReduced)
             this.callBackReduced(this);
-      //this.canvas.remove();
     },
 
     /**
@@ -255,7 +274,7 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
             this.addChild(closeWindowButton);
             currentWidth += tabsWidth;
         }
-        let closeWindowGroupButton = new Button();
+        let closeWindowGroupButton = new Button(); //Closes this windowgroup
         closeWindowGroupButton.setBounds(new Bounds(windowGroupBounds.x+this.bounds.w-closeWindowButtonWidth,windowGroupBounds.y+1, closeWindowButtonWidth, tabsHeight)).setBackgroundColor("white")
             .setBorderColor("#004d00")
             .setBorderLineWidth(3)
@@ -265,7 +284,7 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
             .setId(this.getId())
             .addEventListener(burdui.EventTypes.mouseClick, (source) => {this.closeWindowGroup();});
 
-        let reduceButton = new Button();
+        let reduceButton = new Button(); //Reduces to icon this window group
         reduceButton.setBounds(new Bounds(windowGroupBounds.x+this.bounds.w-closeWindowButtonWidth*2,windowGroupBounds.y+1, closeWindowButtonWidth, tabsHeight)).setBackgroundColor("white")
             .setBorderColor("#004d00")
             .setBorderLineWidth(3)

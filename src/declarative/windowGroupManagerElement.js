@@ -9,12 +9,16 @@ class WindowGroupManagerElement extends ViewElement {
     }
     connectedCallback() {
         super.connectedCallback((child) => {
-            this.onWindowGroupAdd(child);
+            this.onWindowGroupAdd(child); //WindowGroup has been added
             this.buiView.formatWindowGroup(child);
         });
     }
 
 
+    /**
+     * Creates a canvas for the newly added windowgroup
+     * @param child windowgroup just added
+     */
     onWindowGroupAdd(child) {
         if(child.constructor.name !== "WindowGroup")
             return;
@@ -37,10 +41,18 @@ class WindowGroupManagerElement extends ViewElement {
         child.setWindowCanvas(canvas);
     }
 
+    /**
+     * Callback called when a windowgroup has been closed
+     * @param child the windowgroup
+     */
     callBackRemovedWindowGroup(child){
         this.buiView.callBackRemovedWindowGroup(child.getId());
     }
 
+    /**
+     * Callback called when a windowgroup has been reduced to icon
+     * @param child the windowgroup
+     */
     callBackReduceWindowGroup(child){
         this.buiView.callBackReduceWindowGroup(child.getId());
     }
