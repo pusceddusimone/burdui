@@ -12,7 +12,7 @@ function WindowGroupManager(bounds){
     this.windowGroupChildren = [];
     this.wgMap = [];
     this.selectedWindows = [];
-    this.canvasList = [];
+    this.canvasContainerList = [];
 }
 
 
@@ -34,13 +34,13 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
 
     /**
      * Sets the WindowGroup child canvas
-     * @param canvas canvas of the WindowGroup child
+     * @param canvasContainer
      * @param id id of the newly created window
      */
-    addWindowGroupCanvas : function (canvas, id){
-      this.canvasList.push({
+    addWindowGroupCanvas : function (canvasContainer, id){
+      this.canvasContainerList.push({
           id,
-          canvas
+          canvasContainer
       });
     },
 
@@ -95,7 +95,7 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
             return;
         let canvas = canvasObj.canvas;
         this.windowGroupChildren =  this.windowGroupChildren.filter(child => child.getId()!==id);
-        this.canvasList = this.canvasList.filter(obj => obj.id !== id);
+        this.canvasContainerList = this.canvasContainerList.filter(obj => obj.id !== id);
         this.selectedWindows = this.selectedWindows.filter(wgId => wgId !== id);
         let screen = document.getElementById('screen').getContext('2d');
         this.paint(screen, this.bounds);
@@ -108,7 +108,7 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
      * @returns {*} the canvas
      */
     getWindowGroupCanvas : function (id){
-        return this.canvasList.find(c => c.id === id);
+        return this.canvasContainerList.find(c => c.id === id);
     },
 
     /**
@@ -119,11 +119,11 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         let canvasObj = this.getWindowGroupCanvas(id);
         if(!canvasObj)
             return;
-        let canvas = canvasObj.canvas;
+        let canvasContainer = canvasObj.canvasContainer;
         this.selectedWindows = this.selectedWindows.filter(windowId => windowId !== id);
         let screen = document.getElementById('screen').getContext('2d');
         this.paint(screen, this.bounds);
-        canvas.remove();
+        canvasContainer.remove();
     },
 
     /**
@@ -134,11 +134,11 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         let canvasObj = this.getWindowGroupCanvas(id);
         if(!canvasObj)
             return;
-        let canvas = canvasObj.canvas;
+        let canvasContainer = canvasObj.canvasContainer;
         this.selectedWindows.push(id);
         let screen = document.getElementById('screen').getContext('2d');
         this.paint(screen, this.bounds);
-        document.getElementsByClassName("canvasContainer")[0].insertBefore(canvas, document.getElementById('screen').children[0])
+        document.getElementsByClassName("canvasContainer")[0].insertBefore(canvasContainer, document.getElementById('screen').children[0])
     },
 
     updateBounds: function(){

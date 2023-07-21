@@ -27,17 +27,25 @@ class WindowGroupManagerElement extends ViewElement {
         child.setCallbackRemoved((child) => {this.callBackRemovedWindowGroup(child)});
         child.setCallbackReduced((child) => {this.callBackReduceWindowGroup(child)});
         let canvas = document.createElement("canvas");
+        let canvasContainer = document.createElement("div");
+        canvasContainer.style.width = child.bounds.w+"px";
+        canvasContainer.style.height = child.bounds.h+"px";
+        canvasContainer.style.left = child.bounds.x+"px";
+        canvasContainer.style.top = child.bounds.y+"px";
+        canvasContainer.style.position="absolute";
+        canvasContainer.style.zIndex = "20";
+
+
         canvas.width = child.bounds.w;
         canvas.height = child.bounds.h;
-        canvas.style.left = child.bounds.x+"px";
-        canvas.style.top = child.bounds.y+"px";
-        canvas.style.position="absolute";
-        canvas.style.zIndex = "20";
+
         canvas.style.borderStyle = "1px solid black";
         canvas.style.borderWidth = child.bounds.lineWidth+"px";
         canvas.style.borderColor = child.bounds.borderColor;
-        this.buiView.addWindowGroupCanvas(canvas, childId);
-        document.getElementsByClassName("canvasContainer")[0].insertBefore(canvas, document.getElementById('screen').children[0]);
+        canvasContainer.appendChild(canvas);
+        child.setCanvasContainer(canvasContainer);
+        this.buiView.addWindowGroupCanvas(canvasContainer, childId);
+        document.getElementsByClassName("canvasContainer")[0].insertBefore(canvasContainer, document.getElementById('screen').children[0]);
         child.setWindowCanvas(canvas);
     }
 

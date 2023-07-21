@@ -8,6 +8,7 @@ function Window(bounds){
     this.bounds = bounds || new Bounds();
     this.border = new Border();
     this.background = new Background();
+    this.canvas = null;
 }
 
 
@@ -30,6 +31,17 @@ Window.prototype = Object.assign( Object.create( View.prototype ), {
     getBounds : function(){
         return this.bounds;
     },
+
+    /**
+     * Sets the canvas for this window
+     * @param canvas
+     */
+    setWindowCanvas : function(canvas){
+        this.canvas = canvas;
+        const app = new burdui.App(canvas, this);
+        app.start();
+    },
+
 
 
     addChild: function(child){

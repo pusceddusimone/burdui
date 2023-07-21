@@ -34,6 +34,9 @@ Button.prototype = Object.assign( Object.create( View.prototype ), {
         this.text.setPosition(
              this.bounds.w/2,
              this.bounds.h/2);
+        if(this.canvasMap){
+
+        }
         return this;
     },
 

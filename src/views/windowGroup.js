@@ -21,7 +21,11 @@ function WindowGroup(bounds){
     this.canvas = null;
     this.callBackRemoved = null;
     this.callBackReduced = null;
-
+    this.canvasMap = {};
+    this.canvasContainer = null;
+    this.tabsToAdd = [];
+    this.visibleCanvas = null;
+    this.appsToStart = [];
 }
 
 
@@ -37,6 +41,10 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
             this.border.lineWidth/2,
             this.bounds.w,
             this.bounds.h));
+            for(let canvasKey of Object.keys(this.canvasMap)){
+                this.canvasMap[canvasKey].width = this.bounds.w;
+                this.canvasMap[canvasKey].height = this.bounds.h-40;
+            }
         this.updateBounds();
         return this;
     },
@@ -170,6 +178,9 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         this.canvas = canvas;
         const app = new burdui.App(canvas, this);
         app.start();
+        for(let newApp of this.appsToStart){
+            newApp.start();
+        }
     },
 
 
@@ -201,6 +212,29 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         let root = document.getElementById('allWindows').buiView;
         this.paint(screen, root);
         this.changeWindow(newIndex);
+    },
+
+
+
+    setApp: function(app, tabNumber){
+        let windowCanvas = document.createElement("canvas");
+        if(!this.windowMap.includes(tabNumber)){
+            this.tabsToAdd.push(tabNumber);
+        }
+
+        windowCanvas.style.position = "absolute";
+        windowCanvas.style.right = "0";
+        windowCanvas.style.top = "40px";
+        windowCanvas.width = this.bounds.w;
+        windowCanvas.height = this.bounds.h;
+        this.canvasMap[tabNumber] = windowCanvas;
+        let newApp = new burdui.App(windowCanvas,app);
+        this.appsToStart.push(newApp);
+        //newApp.start();
+    },
+
+    setCanvasContainer : function(canvasContainer){
+        this.canvasContainer = canvasContainer;
     },
 
     /**
@@ -237,6 +271,15 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
             this.callBackReduced(this);
     },
 
+    showCanvasOfSelectedWindow : function(selectedWindow){
+      let canvasKey = Object.keys(this.canvasMap).find((key) => key == selectedWindow.getId());
+      let selectedCanvas = this.canvasMap[canvasKey];
+      if(selectedCanvas && this.visibleCanvas !== canvasKey){
+          this.canvasContainer.appendChild(selectedCanvas);
+          this.visibleCanvas = canvasKey;
+      }
+    },
+
     /**
      * Function to add as childs the tabs to switch windows
      * @param tabsWidth width of the tab
@@ -250,8 +293,10 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         for(let window of this.windowChildren){ //For each window children
             let button = new Button();
             let backgroundColor = "transparent";
-            if(window.getId() === this.selectedWindow) //If selected window change color to red
+            if(window.getId() === this.selectedWindow){ //If selected window change color to red
                 backgroundColor = "red";
+                this.showCanvasOfSelectedWindow(window);
+            }
             //Generic tab button of a window
             button.setBounds(new Bounds(windowGroupBounds.x+currentWidth,windowGroupBounds.y+1, tabsWidth, tabsHeight)).setBackgroundColor(backgroundColor)
                 .setBorderColor("#004d00")
