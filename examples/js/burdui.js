@@ -2004,6 +2004,13 @@
 	    changeWindow: function(id){
 	        if(id == null)
 	            return;
+	        if(this.visibleCanvas){
+	            let visibleCanvas = this.canvasMap[this.visibleCanvas];
+	            if(visibleCanvas){
+	                this.visibleCanvas = null;
+	                visibleCanvas.remove();
+	            }
+	        }
 	        this.selectedWindow = id;
 	        this.resetWindow(this.canvas);
 	        this.paint();
