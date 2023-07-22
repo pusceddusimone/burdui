@@ -93,7 +93,7 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         let canvasObj = this.getWindowGroupCanvas(id);
         if(!canvasObj)
             return;
-        let canvas = canvasObj.canvas;
+        let canvas = canvasObj.canvasContainer;
         this.windowGroupChildren =  this.windowGroupChildren.filter(child => child.getId()!==id);
         this.canvasContainerList = this.canvasContainerList.filter(obj => obj.id !== id);
         this.selectedWindows = this.selectedWindows.filter(wgId => wgId !== id);

@@ -1865,6 +1865,7 @@
 	    this.tabsToAdd = [];
 	    this.visibleCanvas = null;
 	    this.appsToStart = [];
+	    this.parentBounds = null;
 	}
 
 
@@ -1887,6 +1888,11 @@
 	        this.updateBounds();
 	        return this;
 	    },
+
+	    setParentBounds : function (bounds){
+	      this.parentBounds = bounds;
+	    },
+
 
 	    getBounds : function(){
 	        return this.bounds;
@@ -2100,6 +2106,28 @@
 	        this.changeWindow(this.selectedWindow);
 	    },
 
+	    onMouseClickTab : function(source,event){
+	        let self = this;
+	        let offsetX = event.x;
+	        let offsetY = event.y;
+
+	        function onMouseMove(event){
+	            let newX = event.x-offsetX;
+	            let newY = event.y-offsetY;
+	            if(newX+self.bounds.w <= self.parentBounds.w && newY+self.bounds.h <= self.parentBounds.h &&
+	                newX >= self.parentBounds.x+10 && newY >= self.parentBounds.y+10){
+	                self.canvasContainer.style.left = newX+"px";
+	                self.canvasContainer.style.top = newY+"px";
+	                self.canvasContainer.style.position = "absolute";
+	            }
+	        }
+
+	      document.addEventListener("mousemove", onMouseMove);
+	      document.addEventListener("mouseup", () => {
+	          document.removeEventListener("mousemove", onMouseMove);
+	      });
+	    },
+
 
 	    /**
 	     * Closes this windowgroup
@@ -2141,6 +2169,7 @@
 	            let backgroundColor = "transparent";
 	            if(window.getId() === this.selectedWindow){ //If selected window change color to red
 	                backgroundColor = "red";
+	                button.addEventListener(burdui.EventTypes.mouseDown, (source, event) =>  {this.onMouseClickTab(source, event);});
 	                this.showCanvasOfSelectedWindow(window);
 	            }
 	            //Generic tab button of a window
@@ -2329,7 +2358,7 @@
 	        let canvasObj = this.getWindowGroupCanvas(id);
 	        if(!canvasObj)
 	            return;
-	        let canvas = canvasObj.canvas;
+	        let canvas = canvasObj.canvasContainer;
 	        this.windowGroupChildren =  this.windowGroupChildren.filter(child => child.getId()!==id);
 	        this.canvasContainerList = this.canvasContainerList.filter(obj => obj.id !== id);
 	        this.selectedWindows = this.selectedWindows.filter(wgId => wgId !== id);
@@ -2501,6 +2530,7 @@
 	        child.setId(childId);
 	        child.setCallbackRemoved((child) => {this.callBackRemovedWindowGroup(child);});
 	        child.setCallbackReduced((child) => {this.callBackReduceWindowGroup(child);});
+	        child.setParentBounds(this.buiView.bounds);
 	        let canvas = document.createElement("canvas");
 	        let canvasContainer = document.createElement("div");
 	        canvasContainer.style.width = child.bounds.w+"px";
@@ -2513,6 +2543,7 @@
 
 	        canvas.width = child.bounds.w;
 	        canvas.height = child.bounds.h;
+	        canvas.style.background = "white";
 
 	        canvas.style.borderStyle = "1px solid black";
 	        canvas.style.borderWidth = child.bounds.lineWidth+"px";

@@ -26,6 +26,7 @@ class WindowGroupManagerElement extends ViewElement {
         child.setId(childId);
         child.setCallbackRemoved((child) => {this.callBackRemovedWindowGroup(child)});
         child.setCallbackReduced((child) => {this.callBackReduceWindowGroup(child)});
+        child.setParentBounds(this.buiView.bounds);
         let canvas = document.createElement("canvas");
         let canvasContainer = document.createElement("div");
         canvasContainer.style.width = child.bounds.w+"px";
@@ -38,6 +39,7 @@ class WindowGroupManagerElement extends ViewElement {
 
         canvas.width = child.bounds.w;
         canvas.height = child.bounds.h;
+        canvas.style.background = "white";
 
         canvas.style.borderStyle = "1px solid black";
         canvas.style.borderWidth = child.bounds.lineWidth+"px";

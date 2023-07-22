@@ -26,6 +26,7 @@ function WindowGroup(bounds){
     this.tabsToAdd = [];
     this.visibleCanvas = null;
     this.appsToStart = [];
+    this.parentBounds = null;
 }
 
 
@@ -48,6 +49,11 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         this.updateBounds();
         return this;
     },
+
+    setParentBounds : function (bounds){
+      this.parentBounds = bounds;
+    },
+
 
     getBounds : function(){
         return this.bounds;
@@ -261,6 +267,28 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         this.changeWindow(this.selectedWindow);
     },
 
+    onMouseClickTab : function(source,event){
+        let self = this;
+        let offsetX = event.x;
+        let offsetY = event.y;
+
+        function onMouseMove(event){
+            let newX = event.x-offsetX;
+            let newY = event.y-offsetY;
+            if(newX+self.bounds.w <= self.parentBounds.w && newY+self.bounds.h <= self.parentBounds.h &&
+                newX >= self.parentBounds.x+10 && newY >= self.parentBounds.y+10){
+                self.canvasContainer.style.left = newX+"px";
+                self.canvasContainer.style.top = newY+"px";
+                self.canvasContainer.style.position = "absolute";
+            }
+        }
+
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", () => {
+          document.removeEventListener("mousemove", onMouseMove);
+      });
+    },
+
 
     /**
      * Closes this windowgroup
@@ -302,6 +330,7 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
             let backgroundColor = "transparent";
             if(window.getId() === this.selectedWindow){ //If selected window change color to red
                 backgroundColor = "red";
+                button.addEventListener(burdui.EventTypes.mouseDown, (source, event) =>  {this.onMouseClickTab(source, event)});
                 this.showCanvasOfSelectedWindow(window);
             }
             //Generic tab button of a window
