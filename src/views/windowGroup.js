@@ -229,23 +229,6 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
 
 
 
-    setApp: function(app, tabNumber){
-        let windowCanvas = document.createElement("canvas");
-        if(!this.windowMap.includes(tabNumber)){
-            this.tabsToAdd.push(tabNumber);
-        }
-
-        windowCanvas.style.position = "absolute";
-        windowCanvas.style.right = "0";
-        windowCanvas.style.top = "40px";
-        windowCanvas.width = this.bounds.w;
-        windowCanvas.height = this.bounds.h;
-        this.canvasMap[tabNumber] = windowCanvas;
-        let newApp = new burdui.App(windowCanvas,app);
-        this.appsToStart.push(newApp);
-        //newApp.start();
-    },
-
     setCanvasContainer : function(canvasContainer){
         this.canvasContainer = canvasContainer;
     },
@@ -297,6 +280,7 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         if(this.callBackRemoved)
             this.callBackRemoved(this);
     },
+
 
     /**
      * Reduces to icon this windowgroup

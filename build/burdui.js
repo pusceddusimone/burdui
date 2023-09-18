@@ -2068,23 +2068,6 @@
 
 
 
-	    setApp: function(app, tabNumber){
-	        let windowCanvas = document.createElement("canvas");
-	        if(!this.windowMap.includes(tabNumber)){
-	            this.tabsToAdd.push(tabNumber);
-	        }
-
-	        windowCanvas.style.position = "absolute";
-	        windowCanvas.style.right = "0";
-	        windowCanvas.style.top = "40px";
-	        windowCanvas.width = this.bounds.w;
-	        windowCanvas.height = this.bounds.h;
-	        this.canvasMap[tabNumber] = windowCanvas;
-	        let newApp = new burdui.App(windowCanvas,app);
-	        this.appsToStart.push(newApp);
-	        //newApp.start();
-	    },
-
 	    setCanvasContainer : function(canvasContainer){
 	        this.canvasContainer = canvasContainer;
 	    },
@@ -2136,6 +2119,7 @@
 	        if(this.callBackRemoved)
 	            this.callBackRemoved(this);
 	    },
+
 
 	    /**
 	     * Reduces to icon this windowgroup
@@ -2252,9 +2236,11 @@
 	        super();
 	        this.buiView = new WindowGroup();
 	        let root = new burdui.View;
-	        root.setBounds(new burdui.Bounds(0,0,20,20));
-	        root.setBackgroundColor("red");
-	        this.buiView.setApp(root, 0);
+	        //root.setBounds(new burdui.Bounds(0,0,20,20));
+	        //root.setBackgroundColor("red");
+	        //root.addChild(new Window())
+	        //this.buiView.setApp('declarative-2.html', this.buiView);
+
 	    }
 	    connectedCallback() {
 	        //Whenever a child is added to the html, pass it to the window group
@@ -2365,6 +2351,42 @@
 	        let screen = document.getElementById('screen').getContext('2d');
 	        this.paint(screen, this.bounds);
 	        canvas.remove();
+	    },
+
+	    setApp: function(path, canvas){
+	        // Get a reference to the canvas element
+	        //const canvas = document.getElementById('screen');
+	        const ctx = canvas.getContext('2d');
+
+	        // Create an iframe to load the content.html file
+	        let iframe = document.createElement('iframe');
+	        let style = canvas.parentNode.style;
+	        iframe.src = path;
+	        // Get the computed styles of the source element
+	        const computedStyles = getComputedStyle(canvas.parentNode);
+
+	        // Apply the computed styles to the target element
+	        for (const styleName of computedStyles) {
+	            iframe.style[styleName] = computedStyles[styleName];
+	        }
+
+	        // When the iframe has loaded its content, capture it as an image and draw it on the canvas
+	        iframe.onload = function () {
+	            const iframeDocument = iframe.contentDocument;
+	            const iframeBody = iframeDocument.body;
+
+	            // Create an image from the iframe content
+	            const img = new Image();
+	            img.src = 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg">' + iframeBody.innerHTML + '</svg>');
+
+	            // Draw the image on the canvas
+	            img.onload = function () {
+	                ctx.drawImage(img, 0, 0);
+	            };
+	        };
+
+	        // Add the iframe to the DOM
+	        document.body.appendChild(iframe);
 	    },
 
 	    /**
@@ -2552,6 +2574,7 @@
 	        child.setCanvasContainer(canvasContainer);
 	        this.buiView.addWindowGroupCanvas(canvasContainer, childId);
 	        document.getElementsByClassName("canvasContainer")[0].insertBefore(canvasContainer, document.getElementById('screen').children[0]);
+	        this.buiView.setApp("declarative-2.html", canvas);
 	        child.setWindowCanvas(canvas);
 	    }
 

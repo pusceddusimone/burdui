@@ -102,6 +102,42 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         canvas.remove();
     },
 
+    setApp: function(path, canvas){
+        // Get a reference to the canvas element
+        //const canvas = document.getElementById('screen');
+        const ctx = canvas.getContext('2d');
+
+        // Create an iframe to load the content.html file
+        let iframe = document.createElement('iframe');
+        let style = canvas.parentNode.style;
+        iframe.src = path;
+        // Get the computed styles of the source element
+        const computedStyles = getComputedStyle(canvas.parentNode);
+
+        // Apply the computed styles to the target element
+        for (const styleName of computedStyles) {
+            iframe.style[styleName] = computedStyles[styleName];
+        }
+
+        // When the iframe has loaded its content, capture it as an image and draw it on the canvas
+        iframe.onload = function () {
+            const iframeDocument = iframe.contentDocument;
+            const iframeBody = iframeDocument.body;
+
+            // Create an image from the iframe content
+            const img = new Image();
+            img.src = 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg">' + iframeBody.innerHTML + '</svg>');
+
+            // Draw the image on the canvas
+            img.onload = function () {
+                ctx.drawImage(img, 0, 0);
+            };
+        };
+
+        // Add the iframe to the DOM
+        document.body.appendChild(iframe);
+    },
+
     /**
      * Gets the canvas of the windowgroup given its id
      * @param id id of the windowgroup

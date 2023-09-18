@@ -48,6 +48,7 @@ class WindowGroupManagerElement extends ViewElement {
         child.setCanvasContainer(canvasContainer);
         this.buiView.addWindowGroupCanvas(canvasContainer, childId);
         document.getElementsByClassName("canvasContainer")[0].insertBefore(canvasContainer, document.getElementById('screen').children[0]);
+        this.buiView.setApp("declarative-2.html", canvas);
         child.setWindowCanvas(canvas);
     }
 
