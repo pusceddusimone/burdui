@@ -2019,6 +2019,11 @@
 	        }
 	        this.selectedWindow = id;
 	        this.resetWindow(this.canvas);
+	        let iframe = document.querySelector('iframe');
+	        if(id !== 0)
+	            iframe.style.display = "none";
+	        else
+	            iframe.style.display = "unset";
 	        this.paint();
 	    },
 
@@ -2102,6 +2107,10 @@
 	                self.canvasContainer.style.left = newX+"px";
 	                self.canvasContainer.style.top = newY+"px";
 	                self.canvasContainer.style.position = "absolute";
+	                let iframe = document.querySelector('iframe');
+	                iframe.style.left = newX+"px";
+	                iframe.style.top = newY+41+"px";
+	                iframe.style.position = "absolute";
 	            }
 	        }
 
@@ -2349,6 +2358,8 @@
 	        this.canvasContainerList = this.canvasContainerList.filter(obj => obj.id !== id);
 	        this.selectedWindows = this.selectedWindows.filter(wgId => wgId !== id);
 	        let screen = document.getElementById('screen').getContext('2d');
+	        let iframe = document.querySelector('iframe');
+	        iframe.style.display = "none";
 	        this.paint(screen, this.bounds);
 	        canvas.remove();
 	    },
@@ -2369,6 +2380,9 @@
 	        for (const styleName of computedStyles) {
 	            iframe.style[styleName] = computedStyles[styleName];
 	        }
+	        iframe.style["zIndex"] = "20";
+	        iframe.style["top"] = "141px";
+	        iframe.style["height"] = "259px";
 
 	        // When the iframe has loaded its content, capture it as an image and draw it on the canvas
 	        iframe.onload = function () {
@@ -2410,6 +2424,8 @@
 	        this.selectedWindows = this.selectedWindows.filter(windowId => windowId !== id);
 	        let screen = document.getElementById('screen').getContext('2d');
 	        this.paint(screen, this.bounds);
+	        let iframe = document.querySelector('iframe');
+	        iframe.style.display = "none";
 	        canvasContainer.remove();
 	    },
 
@@ -2425,6 +2441,8 @@
 	        this.selectedWindows.push(id);
 	        let screen = document.getElementById('screen').getContext('2d');
 	        this.paint(screen, this.bounds);
+	        let iframe = document.querySelector('iframe');
+	        iframe.style.display = "unset";
 	        document.getElementsByClassName("canvasContainer")[0].insertBefore(canvasContainer, document.getElementById('screen').children[0]);
 	    },
 
@@ -2560,12 +2578,11 @@
 	        canvasContainer.style.left = child.bounds.x+"px";
 	        canvasContainer.style.top = child.bounds.y+"px";
 	        canvasContainer.style.position="absolute";
-	        canvasContainer.style.zIndex = "20";
-
+	        canvasContainer.style.zIndex = "10";
 
 	        canvas.width = child.bounds.w;
 	        canvas.height = child.bounds.h;
-	        canvas.style.background = "white";
+	        canvas.style.background = "transparent";
 
 	        canvas.style.borderStyle = "1px solid black";
 	        canvas.style.borderWidth = child.bounds.lineWidth+"px";
@@ -2574,7 +2591,7 @@
 	        child.setCanvasContainer(canvasContainer);
 	        this.buiView.addWindowGroupCanvas(canvasContainer, childId);
 	        document.getElementsByClassName("canvasContainer")[0].insertBefore(canvasContainer, document.getElementById('screen').children[0]);
-	        this.buiView.setApp("declarative-2.html", canvas);
+	        this.buiView.setApp("input-1.html", canvas);
 	        child.setWindowCanvas(canvas);
 	    }
 

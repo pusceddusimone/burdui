@@ -98,6 +98,8 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         this.canvasContainerList = this.canvasContainerList.filter(obj => obj.id !== id);
         this.selectedWindows = this.selectedWindows.filter(wgId => wgId !== id);
         let screen = document.getElementById('screen').getContext('2d');
+        let iframe = document.querySelector('iframe');
+        iframe.style.display = "none";
         this.paint(screen, this.bounds);
         canvas.remove();
     },
@@ -118,6 +120,9 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         for (const styleName of computedStyles) {
             iframe.style[styleName] = computedStyles[styleName];
         }
+        iframe.style["zIndex"] = "20"
+        iframe.style["top"] = "141px";
+        iframe.style["height"] = "259px"
 
         // When the iframe has loaded its content, capture it as an image and draw it on the canvas
         iframe.onload = function () {
@@ -159,6 +164,8 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         this.selectedWindows = this.selectedWindows.filter(windowId => windowId !== id);
         let screen = document.getElementById('screen').getContext('2d');
         this.paint(screen, this.bounds);
+        let iframe = document.querySelector('iframe');
+        iframe.style.display = "none";
         canvasContainer.remove();
     },
 
@@ -174,6 +181,8 @@ WindowGroupManager.prototype = Object.assign( Object.create( View.prototype ), {
         this.selectedWindows.push(id);
         let screen = document.getElementById('screen').getContext('2d');
         this.paint(screen, this.bounds);
+        let iframe = document.querySelector('iframe');
+        iframe.style.display = "unset";
         document.getElementsByClassName("canvasContainer")[0].insertBefore(canvasContainer, document.getElementById('screen').children[0])
     },
 

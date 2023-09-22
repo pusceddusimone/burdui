@@ -34,12 +34,11 @@ class WindowGroupManagerElement extends ViewElement {
         canvasContainer.style.left = child.bounds.x+"px";
         canvasContainer.style.top = child.bounds.y+"px";
         canvasContainer.style.position="absolute";
-        canvasContainer.style.zIndex = "20";
-
+        canvasContainer.style.zIndex = "10";
 
         canvas.width = child.bounds.w;
         canvas.height = child.bounds.h;
-        canvas.style.background = "white";
+        canvas.style.background = "transparent";
 
         canvas.style.borderStyle = "1px solid black";
         canvas.style.borderWidth = child.bounds.lineWidth+"px";
@@ -48,7 +47,7 @@ class WindowGroupManagerElement extends ViewElement {
         child.setCanvasContainer(canvasContainer);
         this.buiView.addWindowGroupCanvas(canvasContainer, childId);
         document.getElementsByClassName("canvasContainer")[0].insertBefore(canvasContainer, document.getElementById('screen').children[0]);
-        this.buiView.setApp("declarative-2.html", canvas);
+        this.buiView.setApp("input-1.html", canvas);
         child.setWindowCanvas(canvas);
     }
 

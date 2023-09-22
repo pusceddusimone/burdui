@@ -180,6 +180,11 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
         }
         this.selectedWindow = id;
         this.resetWindow(this.canvas);
+        let iframe = document.querySelector('iframe');
+        if(id !== 0)
+            iframe.style.display = "none";
+        else
+            iframe.style.display = "unset";
         this.paint();
     },
 
@@ -263,6 +268,10 @@ WindowGroup.prototype = Object.assign( Object.create( View.prototype ), {
                 self.canvasContainer.style.left = newX+"px";
                 self.canvasContainer.style.top = newY+"px";
                 self.canvasContainer.style.position = "absolute";
+                let iframe = document.querySelector('iframe');
+                iframe.style.left = newX+"px";
+                iframe.style.top = newY+41+"px";
+                iframe.style.position = "absolute";
             }
         }
 
